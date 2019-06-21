@@ -13,6 +13,7 @@ import { getIFramePath, getIFrameUrl } from '@/utils/iframe'
 Vue.use(Router)
 
 const router = new Router({
+  mode: 'history',
   routes: [
     {
       path: '/',
@@ -48,6 +49,7 @@ router.beforeEach((to, from, next) => {
   // 存在时间为会话生命周期，页面关闭即失效。
   let token = Cookies.get('token')
   let userName = sessionStorage.getItem('user')
+  let roleId = sessionStorage.getItem('roleId')
   if (to.path === '/login') {
     // 如果是访问登录界面，如果用户会话信息存在，代表已登录过，跳转到主页
     if(token) {
@@ -61,7 +63,7 @@ router.beforeEach((to, from, next) => {
       next({ path: '/login' })
     } else {
       // 加载动态菜单和路由
-      addDynamicMenuAndRoutes(userName, to, from)
+      addDynamicMenuAndRoutes(userName, roleId, to, from)
       next()
     }
   }
@@ -70,28 +72,28 @@ router.beforeEach((to, from, next) => {
 /**
 * 加载动态菜单和路由
 */
-function addDynamicMenuAndRoutes(userName, to, from) {
+function addDynamicMenuAndRoutes(userName, roleId, to, from) {
   // 处理IFrame嵌套页面
   handleIFrameUrl(to.path)
   if(store.state.app.menuRouteLoaded) {
     console.log('动态菜单和路由已经存在.')
     return
   }
-  api.menu.findNavTree({'userName':userName})
+  api.menu.findNavTree({'userName':userName,'roleId': roleId})
   .then(res => {
     // 添加动态路由
-    let dynamicRoutes = addDynamicRoutes(res.data)
+    let dynamicRoutes = addDynamicRoutes(res.data.data)
     // 处理静态组件绑定路由
     handleStaticComponent(router, dynamicRoutes)
     router.addRoutes(router.options.routes)
     // 保存加载状态
     store.commit('menuRouteLoaded', true)
     // 保存菜单树
-    store.commit('setNavTree', res.data)
+    store.commit('setNavTree', res.data.data)
   }).then(res => {
     api.user.findPermissions({'name':userName}).then(res => {
       // 保存用户权限标识集合
-      store.commit('setPerms', res.data)
+      store.commit('setPerms', res.data.data)
     })
   })
   .catch(function(res) {
@@ -139,39 +141,39 @@ function addDynamicRoutes (menuList = [], routes = []) {
  for (var i = 0; i < menuList.length; i++) {
    if (menuList[i].children && menuList[i].children.length >= 1) {
      temp = temp.concat(menuList[i].children)
-   } else if (menuList[i].url && /\S/.test(menuList[i].url)) {
-      menuList[i].url = menuList[i].url.replace(/^\//, '')
+   } else if (menuList[i].href && /\S/.test(menuList[i].href)) {
+      menuList[i].href = menuList[i].href.replace(/^\//, '')
       // 创建路由配置
       var route = {
-        path: menuList[i].url,
+        path: menuList[i].href,
         component: null,
-        name: menuList[i].name,
+        name: menuList[i].menuName,
         meta: {
           icon: menuList[i].icon,
-          index: menuList[i].id
+          index: menuList[i].menuId
         }
       }
-      let path = getIFramePath(menuList[i].url)
+      let path = getIFramePath(menuList[i].href)
       if (path) {
         // 如果是嵌套页面, 通过iframe展示
         route['path'] = path
         route['component'] = resolve => require([`@/views/IFrame/IFrame`], resolve)
         // 存储嵌套页面路由路径和访问URL
-        let url = getIFrameUrl(menuList[i].url)
-        let iFrameUrl = {'path':path, 'url':url}
+        let href = getIFrameUrl(menuList[i].href)
+        let iFrameUrl = {'path':path, 'url':href}
         store.commit('addIFrameUrl', iFrameUrl)
       } else {
-       try {
+       // try {
          // 根据菜单URL动态加载vue组件，这里要求vue组件须按照url路径存储
          // 如url="sys/user"，则组件路径应是"@/views/sys/user.vue",否则组件加载不到
-         let array = menuList[i].url.split('/')
-         let url = ''
+         let array = menuList[i].href.split('/')
+         let href = ''
          for(let i=0; i<array.length; i++) {
-            url += array[i].substring(0,1).toUpperCase() + array[i].substring(1) + '/'
+            href += array[i].substring(0,1).toUpperCase() + array[i].substring(1) + '/'
          }
-         url = url.substring(0, url.length - 1)
-         route['component'] = resolve => require([`@/views/${url}`], resolve)
-       } catch (e) {}
+         href = href.substring(0, href.length - 1)
+         route['component'] = resolve => require([`@/views/${href}`], resolve)
+       // } catch (e) {}
      }
      routes.push(route)
    }

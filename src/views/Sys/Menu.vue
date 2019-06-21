@@ -179,6 +179,7 @@ export default {
   methods: {
     // 获取数据
     findTreeData: function() {
+      debugger
       this.loading = true;
       this.$api.menu.findMenuTree().then(res => {
         this.tableTreeDdata = res.data;

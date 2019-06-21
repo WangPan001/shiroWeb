@@ -195,7 +195,7 @@ export default {
       checked: true,
       loginForm: {
         account: 'admin',
-        password: 'admin',
+        password: '123456',
         captcha:'',
         src: ''
       },
@@ -214,19 +214,21 @@ export default {
   },
   methods: {
     login(fieldRules) {
-      this.loading = true
-      let userInfo = {account:this.loginForm.account, password:this.loginForm.password, captcha:this.loginForm.captcha}
+      // this.loading = true
+      let userInfo = {loginName:this.loginForm.account, password:this.loginForm.password, captcha:this.loginForm.captcha}
+      let userRequest = {'userRequest' : userInfo}
       this.$refs[fieldRules].validate((valid) => {
         if (valid) {
           this.$api.login.login(userInfo).then((res) => {
-            if(res.msg != null) {
+            if(res.code != '0') {
               this.$message({
                 message: res.msg,
                 type: 'error'
               })
             } else {
               Cookies.set('token', res.data.token) // 放置token到Cookie
-              sessionStorage.setItem('user', userInfo.account) // 保存用户到本地会话
+              sessionStorage.setItem('user', userInfo.loginName) // 保存用户到本地会话
+              sessionStorage.setItem('roleId', res.data.roleId) // 保存用户到本地会话
               this.$store.commit('menuRouteLoaded', false) // 要求重新加载导航菜单
               this.$router.push('/')  // 登录成功，跳转到主页
             }
@@ -254,28 +256,6 @@ export default {
     onThemeChange: function(themeColor) {
       this.$store.commit('setThemeColor', themeColor)
     },
-    checkImageCode: function(){
-      let userInfo = {captcha:this.loginForm.captcha}
-      this.$api.login.checkImageCode(userInfo).then((res) => {
-            if(res.msg != null) {
-              this.$message({
-                message: res.msg,
-                type: 'error'
-              })
-            } else {
-              Cookies.set('token', res.data.token) // 放置token到Cookie
-              sessionStorage.setItem('user', userInfo.account) // 保存用户到本地会话
-              this.$store.commit('menuRouteLoaded', false) // 要求重新加载导航菜单
-              this.$router.push('/')  // 登录成功，跳转到主页
-            }
-            this.loading = false
-          }).catch((res) => {
-            this.$message({
-              message: res.message,
-              type: 'error'
-            })
-          });
-    }
   },
   mounted() {
     this.refreshCaptcha()
