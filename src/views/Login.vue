@@ -212,7 +212,7 @@ export default {
       },
     }
   },
-  methods: {
+  methods: {    
     login(fieldRules) {
       // this.loading = true
       let userInfo = {loginName:this.loginForm.account, password:this.loginForm.password, captcha:this.loginForm.captcha}
@@ -258,7 +258,14 @@ export default {
     },
   },
   mounted() {
-    this.refreshCaptcha()
+    this.refreshCaptcha();
+    let _this = this;
+    document.onkeydown = function(e){
+        var ev = document.all ? window.event : e;
+        if(ev.keyCode==13) {
+            _this.login('fieldRules');
+        }
+    }
   },
   computed:{
     ...mapState({
