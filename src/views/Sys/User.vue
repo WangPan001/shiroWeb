@@ -140,13 +140,13 @@ export default {
 	methods: {
 		// 获取分页数据
 		findPage: function (data) {
-			if(data !== null) {
+			if("undefined" != typeof(data) && data !== null) {
 				this.pageRequest = data.pageRequest
 			}
 			this.pageRequest.columnFilters = {name: {name:'name', value:this.filters.name}}
 			this.$api.user.findPage(this.pageRequest).then((res) => {
-				this.pageResult = res.data
-				this.findUserRoles()
+				this.pageResult = res.data;
+				// this.findUserRoles()
 			}).then(data!=null?data.callback:'')
 		},
 		// 加载用户角色信息
@@ -247,21 +247,17 @@ export default {
 			this.columns = [
 				{prop:"id", label:"ID", minWidth:50},
 				{prop:"name", label:"用户名", minWidth:120},
-				{prop:"deptName", label:"机构", minWidth:120},
-				{prop:"roleNames", label:"角色", minWidth:100},
+				{prop:"dept_name", label:"机构", minWidth:120},
+				{prop:"role_name", label:"角色", minWidth:100},
 				{prop:"email", label:"邮箱", minWidth:120},
 				{prop:"mobile", label:"手机", minWidth:100},
 				{prop:"status", label:"状态", minWidth:70},
-				// {prop:"createBy", label:"创建人", minWidth:120},
-				// {prop:"createTime", label:"创建时间", minWidth:120, formatter:this.dateFormat}
-				// {prop:"lastUpdateBy", label:"更新人", minWidth:100},
-				// {prop:"lastUpdateTime", label:"更新时间", minWidth:120, formatter:this.dateFormat}
 			]
 			this.filterColumns = JSON.parse(JSON.stringify(this.columns));
       	}
 	},
 	mounted() {
-		this.findDeptTree()
+		// this.findDeptTree()
 		this.initColumns()
 	}
 }

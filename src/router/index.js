@@ -20,15 +20,15 @@ const router = new Router({
       name: '首页',
       component: Home,
       children: [
-        { 
-          path: '', 
-          name: '系统介绍', 
-          component: Intro,
-          meta: {
-            icon: 'fa fa-home fa-lg',
-            index: 0
-          }
-        }
+        // { 
+        //   path: '', 
+        //   name: '系统介绍', 
+        //   component: Intro,
+        //   meta: {
+        //     icon: 'fa fa-home fa-lg',
+        //     index: 0
+        //   }
+        // }
       ]
     },
     {
@@ -81,6 +81,10 @@ function addDynamicMenuAndRoutes(userName, roleId, to, from) {
   }
   api.menu.findNavTree({'userName':userName,'roleId': roleId})
   .then(res => {
+    if(res.code === 10004){
+      Cookies.remove("token")
+      location.reload();
+    }
     // 添加动态路由
     let dynamicRoutes = addDynamicRoutes(res.data.data)
     // 处理静态组件绑定路由
@@ -90,11 +94,8 @@ function addDynamicMenuAndRoutes(userName, roleId, to, from) {
     store.commit('menuRouteLoaded', true)
     // 保存菜单树
     store.commit('setNavTree', res.data.data)
-  }).then(res => {
-    api.user.findPermissions({'name':userName}).then(res => {
-      // 保存用户权限标识集合
-      store.commit('setPerms', res.data.data)
-    })
+    // 保存用户权限标识集合
+    store.commit('setPerms', res.data.data)
   })
   .catch(function(res) {
   })
@@ -124,7 +125,7 @@ function handleIFrameUrl(path) {
   for(let i=0; i<length; i++) {
     let iframe = store.state.iframe.iframeUrls[i]
     if(path != null && path.endsWith(iframe.path)) {
-      url = iframe.url
+      url = iframe.path
       store.commit('setIFrameUrl', url)
       break
     }

@@ -17,8 +17,6 @@ export function getIFramePath (url) {
     if(iframeUrl.indexOf(":") != -1) {
       iframeUrl = iframeUrl.substring(iframeUrl.lastIndexOf(":") + 1)
     }
-  }else{
-    iframeUrl = url;
   }
   return iframeUrl
 }
@@ -36,4 +34,3 @@ export function getIFrameUrl (url) {
   }
   return iframeUrl
 }
-

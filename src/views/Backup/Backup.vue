@@ -93,7 +93,7 @@ export default {
         }
 	},
 	mounted() {
-		this.findRecords()
+		// this.findRecords()
 	}
 }
 </script>
