@@ -16,12 +16,13 @@
 	</div>
 	<!--表格树内容栏-->
     <el-table :data="tableTreeDdata" stripe size="mini" style="width: 100%;"
-      rowKey="id" v-loading="loading" element-loading-text="$t('action.loading')">
+      rowKey="menuId" v-loading="loading" >
+      <kt-button element-loading-text="$t('action.loading_text')"/>
       <el-table-column
         prop="id" header-align="center" align="center" width="80" label="ID">
       </el-table-column>
       <table-tree-column 
-        prop="name" header-align="center" treeKey="id" width="150" label="名称">
+        prop="menuName" header-align="center" treeKey="menuId" width="150" label="名称">
       </table-tree-column>
       <el-table-column header-align="center" align="center" label="图标">
         <template slot-scope="scope">
@@ -29,21 +30,25 @@
         </template>
       </el-table-column>
       <el-table-column prop="type" header-align="center" align="center" label="类型">
-        <template slot-scope="scope">
-          <el-tag v-if="scope.row.type === 0" size="small">目录</el-tag>
-          <el-tag v-else-if="scope.row.type === 1" size="small" type="success">菜单</el-tag>
-          <el-tag v-else-if="scope.row.type === 2" size="small" type="info">按钮</el-tag>
+        <template slot-scope="scope">        
+          <el-tag v-if="scope.row.menuType == 0" size="small">目录</el-tag>
+          <el-tag v-else-if="scope.row.menuType == 1" size="small" type="success">菜单</el-tag>
+          <el-tag v-else-if="scope.row.menuType == 2" size="small" type="info">按钮</el-tag>
         </template>
       </el-table-column>
       <el-table-column 
         prop="parentName" header-align="center" align="center" width="120" label="上级菜单">
+        <template slot-scope="scope">          
+          <el-tag v-if="scope.row.parentMenuId == 0" size="small">无</el-tag>
+          <el-tag v-else size="small" type="success">{{scope.row.parentName}}</el-tag>
+        </template>
       </el-table-column>
       <el-table-column
-        prop="url" header-align="center" align="center" width="150" 
+        prop="href" header-align="center" align="center" width="150" 
         :show-overflow-tooltip="true" label="菜单URL">
       </el-table-column>
       <el-table-column
-        prop="perms" header-align="center" align="center" width="150" 
+        prop="permission" header-align="center" align="center" width="150" 
         :show-overflow-tooltip="true" label="授权标识">
       </el-table-column>
       <el-table-column
@@ -58,16 +63,16 @@
       </el-table-column>
     </el-table>
     <!-- 新增修改界面 -->
-    <el-dialog :title="!dataForm.id ? '新增' : '修改'" width="40%" :visible.sync="dialogVisible" :close-on-click-modal="false">
+    <el-dialog :title="!dataForm.menuId ? '新增' : '修改'" width="40%" :visible.sync="dialogVisible" :close-on-click-modal="false">
       <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="submitForm()" 
         label-width="80px" :size="size" style="text-align:left;">
-        <el-form-item label="菜单类型" prop="type">
-          <el-radio-group v-model="dataForm.type">
-            <el-radio v-for="(type, index) in menuTypeList" :label="index" :key="index">{{ type }}</el-radio>
+        <el-form-item label="菜单类型" prop="menuType">
+          <el-radio-group v-model="dataForm.menuType">
+            <el-radio v-for="type in menuTypeList" :label="type.id" :key="type.id">{{ type.name }}</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item :label="menuTypeList[dataForm.type] + '名称'" prop="name">
-          <el-input v-model="dataForm.name" :placeholder="menuTypeList[dataForm.type] + '名称'"></el-input>
+        <el-form-item :label="menuTypeList[dataForm.menuType].name + '名称'" prop="menuName">
+          <el-input v-model="dataForm.menuName" :placeholder="menuTypeList[dataForm.menuType] + '名称'"></el-input>
         </el-form-item>
         <el-form-item label="上级菜单" prop="parentName">
             <popup-tree-input 
@@ -75,13 +80,13 @@
               :nodeKey="''+dataForm.parentId" :currentChangeHandle="handleTreeSelectChange">
             </popup-tree-input>
         </el-form-item>
-        <el-form-item v-if="dataForm.type !== 0" label="授权标识" prop="perms">
-          <el-input v-model="dataForm.perms" placeholder="如: sys:user:add, sys:user:edit, sys:user:delete"></el-input>
+        <el-form-item v-if="dataForm.menuType != 0" label="授权标识" prop="perms">
+          <el-input v-model="dataForm.permission" placeholder="如: sys:user:add, sys:user:edit, sys:user:delete"></el-input>
         </el-form-item>
-        <el-form-item v-if="dataForm.type === 1" label="菜单路由" prop="url">
+        <el-form-item v-if="dataForm.menuType == 1" label="菜单路由" prop="href">
           <el-row>
             <el-col :span="22">
-                <el-input v-model="dataForm.url" placeholder="菜单路由"></el-input>
+                <el-input v-model="dataForm.href" placeholder="菜单路由"></el-input>
             </el-col>
             <el-col :span="2" class="icon-list__tips">
                 <el-tooltip placement="top" effect="light" style="padding: 10px;">
@@ -95,27 +100,12 @@
             </el-col>
           </el-row>
         </el-form-item>
-        <el-form-item v-if="dataForm.type !== 2" label="排序编号" prop="orderNum">
+        <el-form-item v-if="dataForm.menuType !== 2" label="排序编号" prop="orderNum">
           <el-input-number v-model="dataForm.orderNum" controls-position="right" :min="0" label="排序编号"></el-input-number>
         </el-form-item>
-        <el-form-item v-if="dataForm.type !== 2" label="菜单图标" prop="icon">
+        <el-form-item v-if="dataForm.menuType !== 2" label="菜单图标" prop="icon">
           <el-row>
             <el-col :span="22">
-              <!-- <el-popover
-                ref="iconListPopover"
-                placement="bottom-start"
-                trigger="click"
-                popper-class="mod-menu__icon-popover">
-                <div class="mod-menu__icon-list">
-                  <el-button
-                    v-for="(item, index) in dataForm.iconList"
-                    :key="index"
-                    @click="iconActiveHandle(item)"
-                    :class="{ 'is-active': item === dataForm.icon }">
-                    <icon-svg :name="item"></icon-svg>
-                  </el-button>
-                </div>
-              </el-popover> -->
               <el-input v-model="dataForm.icon" v-popover:iconListPopover :readonly="false" placeholder="菜单图标名称（如：fa fa-home fa-lg）" class="icon-list__input"></el-input>
             </el-col>
             <el-col :span="2" class="icon-list__tips">
@@ -153,15 +143,15 @@ export default {
       },
       tableTreeDdata: [],
       dialogVisible: false,
-      menuTypeList: ["目录", "菜单", "按钮"],
+      menuTypeList: [{id:"0",name:"目录"},{id:"1",name:"菜单"},{id:"2",name:"按钮"}],
       dataForm: {
-        id: 0,
-        type: 1,
-        name: "",
+        menuId: 0,
+        menuType: 1,
+        menuName: "",
         parentId: 0,
         parentName: "",
-        url: "",
-        perms: "",
+        href: "",
+        permission: "",
         orderNum: 0,
         icon: "",
         iconList: []
@@ -179,11 +169,10 @@ export default {
   methods: {
     // 获取数据
     findTreeData: function() {
-      debugger
       this.loading = true;
-      this.$api.menu.findMenuTree().then(res => {
-        this.tableTreeDdata = res.data;
-        this.popupTreeData = this.getParentMenuTree(res.data);
+      this.$api.menu.findMenuTree({}).then(res => {
+        this.tableTreeDdata = res.data.data;
+        // this.popupTreeData = this.getParentMenuTree(res.data);
         this.loading = false;
       });
     },
@@ -200,14 +189,14 @@ export default {
     handleAdd: function() {
       this.dialogVisible = true;
       this.dataForm = {
-        id: 0,
-        type: 1,
+        menuId: 0,
+        menuType: 1,
         typeList: ["目录", "菜单", "按钮"],
-        name: "",
+        menuName: "",
         parentId: 0,
         parentName: "",
-        url: "",
-        perms: "",
+        href: "",
+        permission: "",
         orderNum: 0,
         icon: "",
         iconList: []

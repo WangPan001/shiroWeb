@@ -29,9 +29,10 @@ export const findNavTree = (data) => {
     })
 }
 // 查找导航菜单树
-export const findMenuTree = () => {
+export const findMenuTree = (data) => {
     return axios({
         url: '/menu/findMenuTree',
-        method: 'get'
+        method: 'post',
+        data
     })
 }

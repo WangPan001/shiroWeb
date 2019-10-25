@@ -30,6 +30,10 @@ export default {
       type: Boolean,
       default: false
     },
+    loading_text: {  // 按钮加载标识
+      type: String,
+      default: '拼命加载中'
+    },
     disabled: {  // 按钮是否禁用
       type: Boolean,
       default: false

@@ -12,7 +12,7 @@ module.exports = {
     assetsPublicPath: '/',
     proxyTable: {
         '/cms': {
-            target: 'http://localhost:8080',
+            target: 'http://localhost:8099',
             changOrigin: true,//是否跨域
             secure: false,
             // headers: {

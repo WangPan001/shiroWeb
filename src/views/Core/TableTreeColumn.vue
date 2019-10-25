@@ -2,7 +2,7 @@
   <el-table-column :prop="prop" v-bind="$attrs">
     <template slot-scope="scope">
       <span @click.prevent="toggleHandle(scope.$index, scope.row)" :style="childStyles(scope.row)">
-        <i :class="iconClasses(scope.row)" :style="iconStyles(scope.row)"></i>
+        <i :style="iconStyles(scope.row)"></i>
         {{ scope.row[prop] }}
       </span>
     </template>
@@ -39,20 +39,23 @@
         return { 'padding-left': (row[this.levelKey] * 25) + 'px' }
       },
       iconClasses (row) {
-        return [ !row._expanded ? 'el-icon-caret-right' : 'el-icon-caret-bottom' ]
+        return [ !row.icon ? 'el-icon-caret-right' : 'el-icon-caret-bottom' ]
       },
       iconStyles (row) {
         return { 'visibility': this.hasChild(row) ? 'visible' : 'hidden' }
       },
       hasChild (row) {
+        if (row == null) {
+          return false
+        }
         return (isArray(row[this.childKey]) && row[this.childKey].length >= 1) || false
       },
       // 切换处理
       toggleHandle (index, row) {
-        if (this.hasChild(row)) {
+        if (this.hasChild(row.children)) {
           var data = this.$parent.store.states.data.slice(0)
-          data[index]._expanded = !data[index]._expanded
-          if (data[index]._expanded) {
+          data[index].icon = !data[index].icon
+          if (data[index].icon) {
             data = data.splice(0, index + 1).concat(row[this.childKey]).concat(data)
           } else {
             data = this.removeChildNode(data, row[this.treeKey])
