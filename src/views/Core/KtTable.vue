@@ -4,7 +4,7 @@
     <el-table :data="data.list" :highlight-current-row="highlightCurrentRow" @selection-change="selectionChange" 
           @current-change="handleCurrentChange" v-loading="loading" :element-loading-text="$t('action.loading')" :border="border" :stripe="stripe"
           :show-overflow-tooltip="showOverflowTooltip" :max-height="maxHeight" :height="height" :size="size" :align="align" style="width:100%;" >
-      <el-table-column type="selection" width="40" v-if="showBatchDelete & showOperation"></el-table-column>
+      <el-table-column type="selection" width="29" v-if="showBatchDelete & showOperation"></el-table-column>
       <el-table-column v-for="column in columns" header-align="center" align="center"
         :prop="column.prop" :label="column.label" :width="column.width" :min-width="column.minWidth" 
         :fixed="column.fixed" :key="column.prop" :type="column.type" :formatter="column.formatter"
@@ -22,7 +22,7 @@
       <kt-button :label="$t('action.batchDelete')" :perms="permsDelete" :size="size" type="danger" @click="handleBatchDelete()" 
         :disabled="this.selections.length===0" style="float:left;" v-if="showBatchDelete & showOperation"/>
       <el-pagination layout="total, prev, pager, next, jumper" @current-change="refreshPageRequest" 
-        :current-page="pageRequest.pageNum" :page-size="pageRequest.pageSize" :total="data.totalSize" style="float:right;">
+        :current-page="pageRequest.pageNum" :page-size="pageRequest.pageSize" :total="data.total" style="float:right;">
       </el-pagination>
     </div>
   </div>
@@ -140,7 +140,7 @@ export default {
         }
         this.loading = true
         let callback = res => {
-          if(res.code == 200) {
+          if(res.code == 0) {
             this.$message({message: '删除成功', type: 'success'})
             this.findPage()
           } else {

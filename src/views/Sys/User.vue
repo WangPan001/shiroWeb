@@ -4,10 +4,10 @@
 	<div class="toolbar" style="float:left;padding-top:10px;padding-left:15px;">
 		<el-form :inline="true" :model="filters" :size="size">
 			<el-form-item>
-				<el-input v-model="filters.name" placeholder="用户名"></el-input>
+				<el-input v-model="filters.name" placeholder="用户名" clearable></el-input>
 			</el-form-item>
 			<el-form-item>
-				<kt-button icon="fa fa-search" :label="$t('action.search')" perms="sys:role:view" type="primary" @click="findPage(null)"/>
+				<kt-button icon="fa fa-search" :label="$t('action.search')" perms="sys:user:view" type="primary" @click="findPage(null)"/>
 			</el-form-item>
 			<el-form-item>
 				<kt-button icon="fa fa-plus" :label="$t('action.add')" perms="sys:user:add" type="primary" @click="handleAdd" />
@@ -53,23 +53,23 @@
 			<el-form-item label="密码" prop="password">
 				<el-input v-model="dataForm.password" type="password" auto-complete="off"></el-input>
 			</el-form-item>
-			<el-form-item label="机构" prop="deptName">
+			<el-form-item label="机构" prop="dept_name">
 				<popup-tree-input 
 					:data="deptData" 
 					:props="deptTreeProps" 
-					:prop="dataForm.deptName" 
-					:nodeKey="''+dataForm.deptId" 
+					:prop="dataForm.dept_name" 
+					:nodeKey="''+dataForm.dept_id" 
 					:currentChangeHandle="deptTreeCurrentChangeHandle">
 				</popup-tree-input>
 			</el-form-item>
 			<el-form-item label="邮箱" prop="email">
-				<el-input v-model="dataForm.email" auto-complete="off"></el-input>
+				<el-input placeholder="admin@qq.com" v-model="dataForm.email" auto-complete="off"></el-input>
 			</el-form-item>
 			<el-form-item label="手机" prop="mobile">
 				<el-input v-model="dataForm.mobile" auto-complete="off"></el-input>
 			</el-form-item>
-			<el-form-item label="角色" prop="userRoles" v-if="!operation">
-				<el-select v-model="dataForm.userRoles" multiple placeholder="请选择"
+			<el-form-item label="角色" prop="userRoleResponses" v-if="!operation">
+				<el-select v-model="dataForm.userRoleResponses" multiple placeholder="请选择"
 					 style="width: 100%;">
 					<el-option v-for="item in roles" :key="item.id"
 						:label="item.remark" :value="item.id">
@@ -108,7 +108,6 @@ export default {
 			filterColumns: [],
 			pageRequest: { pageNum: 1, pageSize: 10 },
 			pageResult: {},
-
 			operation: false, // true:新增, false:编辑
 			dialogVisible: false, // 新增编辑界面是否显示
 			editLoading: false,
@@ -122,12 +121,12 @@ export default {
 				id: 0,
 				name: '',
 				password: '123456',
-				deptId: 1,
-				deptName: '',
-				email: 'test@qq.com',
-				mobile: '13889700023',
+				dept_id: 1,
+				dept_name: '',
+				email: '',
+				mobile: '',
 				status: 1,
-				userRoles: []
+				userRoleResponses: []
 			},
 			deptData: [],
 			deptTreeProps: {
@@ -143,15 +142,23 @@ export default {
 			if("undefined" != typeof(data) && data !== null) {
 				this.pageRequest = data.pageRequest
 			}
-			this.pageRequest.columnFilters = {name: {name:'name', value:this.filters.name}}
+			this.pageRequest.name = this.filters.name;
 			this.$api.user.findPage(this.pageRequest).then((res) => {
 				this.pageResult = res.data;
-				// this.findUserRoles()
+				for (var i = 0; i < res.data.list.length; i++) {
+					if (res.data.list[i].status == 0) {
+						res.data.list[i].status = '禁用'
+					}else if (res.data.list[i].status == 1) {
+						res.data.list[i].status = '正常'
+					}
+				}
+				this.findUserRoles()
 			}).then(data!=null?data.callback:'')
 		},
 		// 加载用户角色信息
 		findUserRoles: function () {
-			this.$api.role.findAll().then((res) => {
+			var param = { pageNum: 1, pageSize: 1000 }
+			this.$api.role.findAll(param).then((res) => {
 				// 加载角色集合
 				this.roles = res.data	
 			})
@@ -168,12 +175,12 @@ export default {
 				id: 0,
 				name: '',
 				password: '',
-				deptId: 1,
-				deptName: '',
-				email: 'test@qq.com',
-				mobile: '13889700023',
+				dept_id: 1,
+				dept_name: '',
+				email: '',
+				mobile: '',
 				status: 1,
-				userRoles: []
+				userRoleResponses: []
 			}
 		},
 		// 显示编辑界面
@@ -182,10 +189,10 @@ export default {
 			this.operation = false
 			this.dataForm = Object.assign({}, params.row)
 			let userRoles = []
-			for(let i=0,len=params.row.userRoles.length; i<len; i++) {
-				userRoles.push(params.row.userRoles[i].roleId)
+			for(let i=0,len=params.row.userRoleResponses.length; i<len; i++) {
+				userRoles.push(params.row.userRoleResponses[i].roleId)
 			}
-			this.dataForm.userRoles = userRoles
+			this.dataForm.userRoleResponses = userRoles
 		},
 		// 编辑
 		submitForm: function () {
@@ -195,17 +202,17 @@ export default {
 						this.editLoading = true
 						let params = Object.assign({}, this.dataForm)
 						let userRoles = []
-						for(let i=0,len=params.userRoles.length; i<len; i++) {
+						for(let i=0,len=params.userRoleResponses.length; i<len; i++) {
 							let userRole = {
 								userId: params.id,
-								roleId: params.userRoles[i]
+								roleId: params.userRoleResponses[i]
 							}
 							userRoles.push(userRole)
 						}
-						params.userRoles = userRoles
+						params.userRoleResponses = userRoles
 						this.$api.user.save(params).then((res) => {
 							this.editLoading = false
-							if(res.code == 200) {
+							if(res.code == 0) {
 								this.$message({ message: '操作成功', type: 'success' })
 								this.dialogVisible = false
 								this.$refs['dataForm'].resetFields()
@@ -226,8 +233,8 @@ export default {
 		},
 		// 菜单树选中
       	deptTreeCurrentChangeHandle (data, node) {
-        	this.dataForm.deptId = data.id
-        	this.dataForm.deptName = data.name
+        	this.dataForm.dept_id = data.id
+        	this.dataForm.dept_name = data.name
 		},
 		// 时间格式化
       	dateFormat: function (row, column, cellValue, index){
@@ -257,7 +264,7 @@ export default {
       	}
 	},
 	mounted() {
-		// this.findDeptTree()
+		this.findDeptTree()
 		this.initColumns()
 	}
 }

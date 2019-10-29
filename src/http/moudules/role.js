@@ -23,16 +23,17 @@ export const batchDelete = (data) => {
 // 分页查询
 export const findPage = (data) => {
     return axios({
-        url: '/role/findPage',
+        url: '/role/queryRoles',
         method: 'post',
         data
     })
 }
 // 查询全部
-export const findAll = () => {
+export const findAll = (data) => {
     return axios({
-        url: '/role/findAll',
-        method: 'get'
+        url: '/role/queryRoles',
+        method: 'post',
+        data
     })
 }
 // 查询角色菜单集合

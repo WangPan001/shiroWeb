@@ -7,7 +7,7 @@ import axios from '../axios'
 // 保存
 export const save = (data) => {
     return axios({
-        url: '/user/save',
+        url: '/user/add',
         method: 'post',
         data
     })
