@@ -4,7 +4,7 @@
 	<div class="toolbar" style="float:left;padding-top:10px;padding-left:15px;">
 		<el-form :inline="true" :model="filters" :size="size">
 			<el-form-item>
-				<el-input v-model="filters.name" placeholder="名称"></el-input>
+				<el-input clearable v-model="filters.name" placeholder="名称"></el-input>
 			</el-form-item>
 			<el-form-item>
 				<kt-button icon="fa fa-search" :label="$t('action.search')" perms="sys:dept:view" type="primary" @click="findTreeData(null)"/>
@@ -16,12 +16,12 @@
 	</div>
 	<!--表格树内容栏-->
     <el-table :data="tableTreeDdata" stripe size="mini" style="width: 100%;"
-      rowKey="id" v-loading="loading" element-loading-text="$t('action.loading')">
+      rowKey="id" v-loading="loading" :element-loading-text="$t('action.loading')">
       <el-table-column
-        prop="id" header-align="center" align="center" width="80" label="ID">
+        prop="id" header-align="center" align="center" width="100" label="ID">
       </el-table-column>
       <table-tree-column 
-        prop="name" header-align="center" treeKey="id" width="150" label="名称">
+        prop="name" align="center" header-align="center" treeKey="id" width="150" label="名称">
       </table-tree-column>
       <el-table-column 
         prop="parentName" header-align="center" align="center" width="120" label="上级机构">
@@ -95,7 +95,9 @@ export default {
         name: '',
         parentId: 0,
         parentName: '',
-        orderNum: 0
+        orderNum: 0,
+        createBy: '',
+        lastUpdateBy: ''
       },
       dataRule: {
         name: [
@@ -116,7 +118,13 @@ export default {
 		// 获取数据
     findTreeData: function () {
       this.loading = true
-			this.$api.dept.findDeptTree().then((res) => {
+      if (this.filters.name != '' && this.filters.name != null) {
+        this.dataForm.parentId = null;
+      }else{
+        this.dataForm.parentId = 0;
+      }
+      var param = {'parentId':this.dataForm.parentId, 'name': this.filters.name}
+			this.$api.dept.findDeptTree(param).then((res) => {
         this.tableTreeDdata = res.data
         this.popupTreeData = this.getParentMenuTree(res.data)
         this.loading = false
@@ -139,7 +147,9 @@ export default {
         name: '',
         parentId: 0,
         parentName: '',
-        orderNum: 0
+        orderNum: 0,
+        createBy: '',
+        lastUpdateBy: ''
       }
 		},
 		// 显示编辑界面
@@ -153,7 +163,7 @@ export default {
 				type: 'warning'
       }).then(() => {
         let params = this.getDeleteIds([], row)
-        this.$api.dept.batchDelete(params).then( res => {
+        this.$api.dept.deleteDept(params).then( res => {
           this.findTreeData()
           this.$message({message: '删除成功', type: 'success'})
         })
@@ -173,25 +183,45 @@ export default {
     handleTreeSelectChange (data, node) {
       this.dataForm.parentId = data.id
       this.dataForm.parentName = data.name
+      if (data.name == '顶级菜单') {
+          this.dataForm.parentId = 0;
+      }
     },
     // 表单提交
     submitForm () {
+      this.dataForm.createBy = this.global.loginName;
+      this.dataForm.lastUpdateBy = this.global.loginName;
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
 					this.$confirm('确认提交吗？', '提示', {}).then(() => {
 						this.editLoading = true
 						let params = Object.assign({}, this.dataForm)
-						this.$api.dept.save(params).then((res) => {
-              this.editLoading = false
-              if(res.code == 200) {
-								this.$message({ message: '操作成功', type: 'success' })
-                this.dialogVisible = false
-                this.$refs['dataForm'].resetFields()
-							} else {
-								this.$message({message: '操作失败, ' + res.msg, type: 'error'})
-							}
-							this.findTreeData()
-						})
+            if (params.id == 0) {
+              this.$api.dept.save(params).then((res) => {
+                this.editLoading = false
+                if(res.code == 0) {
+                  this.$message({ message: '操作成功', type: 'success' })
+                  this.dialogVisible = false
+                  this.$refs['dataForm'].resetFields()
+                } else {
+                  this.$message({message: '操作失败, ' + res.msg, type: 'error'})
+                }
+                this.findTreeData()
+              })
+            }else{
+              this.$api.dept.edit(params).then((res) => {
+                this.editLoading = false
+                if(res.code == 0) {
+                  this.$message({ message: '操作成功', type: 'success' })
+                  this.dialogVisible = false
+                  this.$refs['dataForm'].resetFields()
+                } else {
+                  this.$message({message: '操作失败, ' + res.msg, type: 'error'})
+                }
+                this.findTreeData()
+              })
+            }
+						
 					})
 				}
       })

@@ -15,7 +15,7 @@
 		</el-form>
 	</div>
 	<!--表格内容栏-->
-	<kt-table :height="220" permsEdit="sys:role:edit" permsDelete="sys:role:delete" :highlightCurrentRow="true" :stripe="false"
+	<kt-table :height="212" permsEdit="sys:role:edit" permsDelete="sys:role:delete" :highlightCurrentRow="true" :stripe="false"
 		:data="pageResult" :columns="columns" :showBatchDelete="false" @handleCurrentChange="handleRoleSelectChange"
 		@findPage="findPage" @handleEdit="handleEdit" @handleDelete="handleDelete">
 	</kt-table>
@@ -43,7 +43,7 @@
 		<div class="menu-header">
 			<span><B>角色菜单授权</B></span>
 		</div>
-		<el-tree :data="menuData" size="mini" show-checkbox node-key="id" :props="defaultProps"
+		<el-tree :data="menuData" show-checkbox node-key="menuId" :props="defaultProps"
 			style="width: 100%;pading-top:20px;" ref="menuTree" :render-content="renderContent"
 			v-loading="menuLoading" element-loading-text="拼命加载中" :check-strictly="true"
 			@check-change="handleMenuCheckChange">
@@ -82,10 +82,8 @@ export default {
 				{prop:"id", label:"ID", minWidth:50},
 				{prop:"name", label:"角色名", minWidth:120},
 				{prop:"remark", label:"备注", minWidth:120},
-				{prop:"createBy", label:"创建人", minWidth:120},
-				{prop:"createTime", label:"创建时间", minWidth:120, formatter:this.dateFormat}
-				// {prop:"lastUpdateBy", label:"更新人", minWidth:100},
-				// {prop:"lastUpdateTime", label:"更新时间", minWidth:120, formatter:this.dateFormat}
+				{prop:"create_by", label:"创建人", minWidth:120},
+				{prop:"create_time", label:"创建时间", minWidth:120, formatter:this.dateFormat}
 			],
 			pageRequest: { pageNum: 1, pageSize: 10 },
 			pageResult: {},
@@ -100,7 +98,7 @@ export default {
 			},
 			// 新增编辑界面数据
 			dataForm: {
-				id: 0,
+				roleId: 0,
 				name: '',
 				remark: ''
 			},
@@ -113,20 +111,21 @@ export default {
 			currentRoleMenus: [],
 			defaultProps: {
 				children: 'children',
-				label: 'name'
+				label: 'menuName'
 			}
 		}
 	},
 	methods: {
 		// 获取分页数据
 		findPage: function (data) {
+			var _this = this;
 			if(data !== null) {
 				this.pageRequest = data.pageRequest
 			}
 			this.pageRequest.columnFilters = {name: {name:'name', value:this.filters.name}}
 			this.$api.role.findPage(this.pageRequest).then((res) => {
-				this.pageResult = res.data
-				this.findTreeData()
+				_this.pageResult = res.data
+				_this.findTreeData()
 			}).then(data!=null?data.callback:'')
 		},
 		// 批量删除
@@ -138,7 +137,7 @@ export default {
 			this.dialogVisible = true
 			this.operation = true
 			this.dataForm = {
-				id: 0,
+				roleId: 0,
 				name: '',
 				remark: ''
 			}
@@ -158,7 +157,7 @@ export default {
 						let params = Object.assign({}, this.dataForm)
 						this.$api.role.save(params).then((res) => {
 							this.editLoading = false
-							if(res.code == 200) {
+							if(res.code == 0) {
 								this.$message({ message: '操作成功', type: 'success' })
 								this.dialogVisible = false
 								this.$refs['dataForm'].resetFields()
@@ -174,8 +173,9 @@ export default {
 		// 获取数据
 		findTreeData: function () {
 			this.menuLoading = true
-			this.$api.menu.findMenuTree().then((res) => {
-				this.menuData = res.data
+			var param = {};
+			this.$api.menu.findMenuTree(param).then((res) => {
+				this.menuData = res.data.data
 				this.menuLoading = false
 			})
 		},
@@ -185,9 +185,13 @@ export default {
 				return
 			}
 			this.selectRole = val.val
-			this.$api.role.findRoleMenus({'roleId':val.val.id}).then((res) => {
+			var param = {'roleId':val.val.id}
+			this.$api.role.findRoleMenus(param).then((res) => {
+				this.$refs.menuTree.setCheckedKeys([]);
 				this.currentRoleMenus = res.data
-				this.$refs.menuTree.setCheckedNodes(res.data)
+				if (res.data != null) {
+					this.$refs.menuTree.setCheckedNodes(res.data)
+				}	
 			})
 		},
 		// 树节点选择监听
@@ -244,7 +248,7 @@ export default {
 				roleMenus.push(roleMenu)
 			}
 			this.$api.role.saveRoleMenus(roleMenus).then((res) => {
-				if(res.code == 200) {
+				if(res.code == 0) {
 					this.$message({ message: '操作成功', type: 'success' })
 				} else {
 					this.$message({message: '操作失败, ' + res.msg, type: 'error'})
@@ -252,10 +256,10 @@ export default {
 				this.authLoading = false
 			})
 		},
-		renderContent(h, { node, data, store }) {
+		renderContent(h, { node, data, store }) {		
 			return (
 			<div class="column-container">
-				<span style="text-algin:center;margin-right:80px;">{data.name}</span>
+				<span style="text-algin:center;margin-right:80px;">{data.menuName}</span>
 				<span style="text-algin:center;margin-right:80px;">
 					<el-tag type={data.type === 0?'':data.type === 1?'success':'info'} size="small">
 						{data.type === 0?'目录':data.type === 1?'菜单':'按钮'}

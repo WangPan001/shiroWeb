@@ -4,10 +4,18 @@ import axios from '../axios'
  * 用户管理模块
  */
 
-// 保存
+// 添加
 export const save = (data) => {
     return axios({
         url: '/user/add',
+        method: 'post',
+        data
+    })
+}
+// 修改
+export const edit = (data) => {
+    return axios({
+        url: '/user/edit',
         method: 'post',
         data
     })

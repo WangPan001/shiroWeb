@@ -22,7 +22,7 @@
       <el-menu class="el-menu-demo" :background-color="themeColor" :text-color="themeColor" :active-text-color="themeColor" mode="horizontal">
         <el-menu-item index="1">
           <!-- 主题切换 -->
-          <theme-picker class="theme-picker" :default="themeColor" @onThemeChange="onThemeChange"></theme-picker>
+          <theme-picker class="theme-picker" :default="themeColor" @onThemeChange="onThemeChange" @></theme-picker>
         </el-menu-item>
         <el-menu-item index="2" v-popover:popover-lang>
           <!-- 语言切换 -->
@@ -52,7 +52,7 @@
         </el-menu-item>
         <el-menu-item index="5" v-popover:popover-personal>
           <!-- 用户信息 -->
-          <span class="user-info"><img :src="user.avatar" />{{user.name}}</span>
+          <span class="user-info"><img :src="user.avatar" />{{loginName}}</span>
           <el-popover ref="popover-personal" placement="bottom-end" trigger="click" :visible-arrow="false">
             <personal-panel :user="user"></personal-panel>
           </el-popover>
@@ -72,6 +72,7 @@ import Action from "@/components/Toolbar/Action"
 import NoticePanel from "@/views/Core/NoticePanel"
 import MessagePanel from "@/views/Core/MessagePanel"
 import PersonalPanel from "@/views/Core/PersonalPanel"
+
 export default {
   components:{
         Hamburger,
@@ -84,8 +85,9 @@ export default {
   },
   data() {
     return {
+      loginName: this.global.loginName,
       user: {
-        name: "Louis",
+        name: this.global.loginName,
         avatar: "",
         role: "超级管理员",
         registeInfo: "注册时间：2018-12-20 "
@@ -117,10 +119,8 @@ export default {
     }
   },
   mounted() {
-    this.sysName = "Kitty Platform"
     var user = sessionStorage.getItem("user")
     if (user) {
-      this.user.name = user
       this.user.avatar = require("@/assets/user.png")
     }
   },

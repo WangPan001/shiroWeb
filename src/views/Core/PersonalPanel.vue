@@ -14,19 +14,14 @@
           </span>
         </div>  
     </div>
-    <div class="personal-relation">
-        <span class="relation-item">followers</span>  
-        <span class="relation-item">watches</span>  
-        <span class="relation-item">friends</span>
-    </div>
-    <div class="main-operation">
+    <!-- <div class="main-operation">
         <span class="main-operation-item">
           <el-button size="small" icon="fa fa-male"> 个人中心</el-button>
         </span>    
         <span class="main-operation-item">
           <el-button size="small" icon="fa fa-key"> 修改密码</el-button>
         </span>    
-    </div>
+    </div> -->
     <div class="other-operation">
         <div class="other-operation-item">
           <li class="fa fa-eraser"></li>

@@ -37,11 +37,11 @@ export const findAll = (data) => {
     })
 }
 // 查询角色菜单集合
-export const findRoleMenus = (params) => {
+export const findRoleMenus = (data) => {
     return axios({
-        url: '/role/findRoleMenus',
-        method: 'get',
-        params
+        url: '/role/queryMenuByRoleId',
+        method: 'post',
+        data
     })
 }
 // 保存角色菜单集合

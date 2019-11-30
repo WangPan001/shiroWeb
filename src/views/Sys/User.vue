@@ -100,6 +100,7 @@ export default {
 	},
 	data() {
 		return {
+			loginName: this.global.loginName,
 			size: 'small',
 			filters: {
 				name: ''
@@ -126,6 +127,8 @@ export default {
 				email: '',
 				mobile: '',
 				status: 1,
+				create_by: '',
+				last_update_by: '',
 				userRoleResponses: []
 			},
 			deptData: [],
@@ -180,6 +183,8 @@ export default {
 				email: '',
 				mobile: '',
 				status: 1,
+				create_by: '',
+				last_update_by: '',
 				userRoleResponses: []
 			}
 		},
@@ -196,6 +201,8 @@ export default {
 		},
 		// 编辑
 		submitForm: function () {
+			this.dataForm.create_by = this.loginName
+			this.dataForm.last_update_by = this.loginName
 			this.$refs.dataForm.validate((valid) => {
 				if (valid) {
 					this.$confirm('确认提交吗？', '提示', {}).then(() => {
@@ -209,25 +216,47 @@ export default {
 							}
 							userRoles.push(userRole)
 						}
-						params.userRoleResponses = userRoles
-						this.$api.user.save(params).then((res) => {
-							this.editLoading = false
-							if(res.code == 0) {
-								this.$message({ message: '操作成功', type: 'success' })
-								this.dialogVisible = false
-								this.$refs['dataForm'].resetFields()
-							} else {
-								this.$message({message: '操作失败, ' + res.msg, type: 'error'})
-							}
-							this.findPage(null)
-						})
+						params.userRoleRequestList = userRoles
+						if (params.status =='禁用') {
+							params.status = 1
+						}else if(params.status =='正常'){
+							params.status = 0
+						}
+						 
+						if (this.operation) {
+							this.$api.user.save(params).then((res) => {
+								this.editLoading = false
+								if(res.code == 0) {
+									this.$message({ message: '操作成功', type: 'success' })
+									this.dialogVisible = false
+									this.$refs['dataForm'].resetFields()
+								} else {
+									this.$message({message: '操作失败, ' + res.msg, type: 'error'})
+								}
+								this.findPage(null)
+							})
+						}else{
+							this.$api.user.edit(params).then((res) => {
+								this.editLoading = false
+								if(res.code == 0) {
+									this.$message({ message: '操作成功', type: 'success' })
+									this.dialogVisible = false
+									this.$refs['dataForm'].resetFields()
+								} else {
+									this.$message({message: '操作失败, ' + res.msg, type: 'error'})
+								}
+								this.findPage(null)
+							})
+						}
+						
 					})
 				}
 			})
 		},
 		// 获取部门列表
 		findDeptTree: function () {
-			this.$api.dept.findDeptTree().then((res) => {
+			var param = {'parentId':'0'}
+			this.$api.dept.findDeptTree(param).then((res) => {
 				this.deptData = res.data
 			})
 		},
@@ -255,7 +284,7 @@ export default {
 				{prop:"id", label:"ID", minWidth:50},
 				{prop:"name", label:"用户名", minWidth:120},
 				{prop:"dept_name", label:"机构", minWidth:120},
-				{prop:"role_name", label:"角色", minWidth:100},
+				{prop:"roleName", label:"角色", minWidth:100},
 				{prop:"email", label:"邮箱", minWidth:120},
 				{prop:"mobile", label:"手机", minWidth:100},
 				{prop:"status", label:"状态", minWidth:70},

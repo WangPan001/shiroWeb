@@ -9,7 +9,7 @@
  * @param datetime 国际化日期格式
  */
 export function format (datetime) {
-  return formatWithSeperator(datetime, "/", ":");
+  return formatWithSeperator(datetime, "-", ":");
 }
 
 /**
@@ -21,12 +21,27 @@ export function format (datetime) {
 export function formatWithSeperator (datetime, dateSeprator, timeSeprator) {
   if (datetime != null) {
     const dateMat = new Date(datetime);
-    const year = dateMat.getFullYear();
-    const month = dateMat.getMonth() + 1;
-    const day = dateMat.getDate();
-    const hh = dateMat.getHours();
-    const mm = dateMat.getMinutes();
-    const ss = dateMat.getSeconds();
+    let year = dateMat.getFullYear();
+    let month = dateMat.getMonth() + 1;
+    if (month <= 9) {
+      month = "0" + month;
+    }
+    let day = dateMat.getDate();
+    if (day <= 9) {
+      day = "0" + day;
+    }
+    let hh = dateMat.getHours();
+    if (hh <= 9) {
+      hh = "0" + hh;
+    }
+    let mm = dateMat.getMinutes();
+    if (mm <= 9) {
+      mm = "0" + mm;
+    }
+    let ss = dateMat.getSeconds();
+    if (ss <= 9) {
+      ss = "0" + ss;
+    }
     const timeFormat = year + dateSeprator + month + dateSeprator + day + " " + hh + timeSeprator + mm + timeSeprator + ss;
     return timeFormat;
   }

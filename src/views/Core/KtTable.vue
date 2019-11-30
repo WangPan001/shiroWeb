@@ -5,10 +5,23 @@
           @current-change="handleCurrentChange" v-loading="loading" :element-loading-text="$t('action.loading')" :border="border" :stripe="stripe"
           :show-overflow-tooltip="showOverflowTooltip" :max-height="maxHeight" :height="height" :size="size" :align="align" style="width:100%;" >
       <el-table-column type="selection" width="29" v-if="showBatchDelete & showOperation"></el-table-column>
-      <el-table-column v-for="column in columns" header-align="center" align="center"
+      <el-table-column v-if="column.prop != 'roleName'" v-for="column in columns" header-align="center" align="center"
         :prop="column.prop" :label="column.label" :width="column.width" :min-width="column.minWidth" 
         :fixed="column.fixed" :key="column.prop" :type="column.type" :formatter="column.formatter"
         :sortable="column.sortable==null?true:column.sortable">
+      </el-table-column>
+
+      <el-table-column v-for="column in columns" label="角色" v-if="column.prop == 'roleName'"
+        header-align="center" align="center" :sortable="column.sortable==null?true:column.sortable" :width="column.width">
+        <template slot-scope="scope">
+          <div>
+            <ul>
+              <li v-for="item in scope.row.userRoleResponses">
+                {{ item.remark }}
+              </li>
+            </ul>
+          </div>
+        </template>
       </el-table-column>
       <el-table-column :label="$t('action.operation')" width="185" fixed="right" v-if="showOperation" header-align="center" align="center">
         <template slot-scope="scope">

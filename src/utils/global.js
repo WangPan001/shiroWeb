@@ -12,7 +12,9 @@ export const baseUrl = '/cms'
 // export const backupBaseUrl = 'http://139.196.87.48:8002'
 //export const backupBaseUrl = 'http://localhost:8090'
 export const backupBaseUrl = '/cms'
+export const loginName = null
 export default {
     baseUrl,
-    backupBaseUrl
+    backupBaseUrl,
+    loginName
 }
