@@ -39,7 +39,7 @@
 		</div>
 	</el-dialog>
 	<!--角色菜单，表格树内容栏-->
-	<div class="menu-container" :v-if="true">
+	<div class="menu-container" v-if="roleMenuShow">
 		<div class="menu-header">
 			<span><B>角色菜单授权</B></span>
 		</div>
@@ -112,7 +112,8 @@ export default {
 			defaultProps: {
 				children: 'children',
 				label: 'menuName'
-			}
+			},
+			roleMenuShow: false,
 		}
 	},
 	methods: {
@@ -184,6 +185,7 @@ export default {
 			if(val == null || val.val == null) {
 				return
 			}
+			this.roleMenuShow = true;
 			this.selectRole = val.val
 			var param = {'roleId':val.val.id}
 			this.$api.role.findRoleMenus(param).then((res) => {
